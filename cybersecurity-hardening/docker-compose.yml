@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: agent_user
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
     ports:
-      - "5433:5432"
+      - "5435:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/init-rag.sql:/docker-entrypoint-initdb.d/init-rag.sql
