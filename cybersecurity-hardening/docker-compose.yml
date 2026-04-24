@@ -44,14 +44,14 @@ services:
       context: ../apps/reports-ui
       dockerfile: Dockerfile
     container_name: lookout-reports-ui
-    environment:
-      VITE_API_BASE: http://localhost:3456
     ports:
       - "5173:5173"
     depends_on:
       - reports-api
     volumes:
       - ../apps/reports-ui/src:/app/src
+      - ../apps/reports-ui/vite.config.js:/app/vite.config.js
+      - ../apps/reports-ui/package.json:/app/package.json
     command: npm run dev -- --host
 
 volumes:

@@ -4,7 +4,7 @@ import ReportDetail from './components/ReportDetail';
 import Settings from './components/Settings';
 import './App.css';
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3456';
+const API_BASE = '/api';
 
 const IDE_PROTOCOLS = {
   vscode: { name: 'VS Code', protocol: 'vscode://file/' },
