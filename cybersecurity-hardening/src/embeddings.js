@@ -1,26 +1,40 @@
-import OpenAI from 'openai';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-function getOpenAIClient() {
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error('OPENAI_API_KEY is required for RAG features');
+function getOpenRouterClient() {
+  if (!process.env.OPENROUTER_API_KEY) {
+    throw new Error('OPENROUTER_API_KEY is required for RAG features');
   }
-  return new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
+  return {
+    apiKey: process.env.OPENROUTER_API_KEY,
+    baseURL: 'https://openrouter.ai/api/v1',
+  };
 }
 
 export async function generateEmbedding(text) {
   try {
-    const openai = getOpenAIClient();
-    const response = await openai.embeddings.create({
-      model: process.env.OPENAI_EMBEDDING_MODEL || 'text-embedding-3-small',
-      input: text,
+    const client = getOpenRouterClient();
+    const model = process.env.OPENROUTER_EMBEDDING_MODEL || 'openai/text-embedding-3-small';
+
+    const response = await fetch(`${client.baseURL}/embeddings`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${client.apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model,
+        input: text,
+      }),
     });
 
-    return response.data[0].embedding;
+    if (!response.ok) {
+      throw new Error(`OpenRouter API error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.data[0].embedding;
   } catch (error) {
     console.error('Failed to generate embedding:', error);
     throw error;

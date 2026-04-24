@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "scan": "node src/index.js",
-    "report": "node src/reporter.js",
     "init-rag": "node src/init-rag.js",
     "feedback": "node src/feedback.js",
-    "stats": "node src/stats.js"
+    "stats": "node src/stats.js",
+    "ingest-architecture": "node src/ingest-architecture.js"
   },
   "keywords": [
     "security",
@@ -22,7 +22,6 @@
   "dependencies": {
     "glob": "^10.3.10",
     "pg": "^8.11.3",
-    "openai": "^4.28.0",
     "dotenv": "^16.4.5"
   }
 }
