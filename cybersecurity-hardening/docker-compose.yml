@@ -21,3 +21,7 @@ services:
 
 volumes:
   postgres_data:
+
+# Note: When using lookout-local docker-compose, this postgres service is not needed.
+# The agents-rag service in lookout-local/docker-compose.yml provides the RAG database.
+# Use POSTGRES_PORT=5434 and POSTGRES_PASSWORD=agents_rag_secret in .env for local dev.
