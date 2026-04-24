@@ -1,20 +1,28 @@
 {
   "name": "cybersecurity-hardening-agent",
-  "version": "1.0.0",
-  "description": "Automated security scanning and hardening for Lookout platform",
+  "version": "2.0.0",
+  "description": "Self-learning security scanning and hardening for Lookout platform with RAG capabilities",
   "type": "module",
   "scripts": {
     "scan": "node src/index.js",
-    "report": "node src/reporter.js"
+    "report": "node src/reporter.js",
+    "init-rag": "node src/init-rag.js",
+    "feedback": "node src/feedback.js",
+    "stats": "node src/stats.js"
   },
   "keywords": [
     "security",
     "hardening",
-    "devsecops"
+    "devsecops",
+    "rag",
+    "self-learning"
   ],
   "author": "Hixson AI",
   "license": "MIT",
   "dependencies": {
-    "glob": "^10.3.10"
+    "glob": "^10.3.10",
+    "pg": "^8.11.3",
+    "openai": "^4.28.0",
+    "dotenv": "^16.4.5"
   }
 }

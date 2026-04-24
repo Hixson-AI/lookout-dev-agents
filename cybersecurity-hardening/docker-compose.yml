@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: lookout-dev-agents-postgres
+    environment:
+      POSTGRES_DB: agents_rag
+      POSTGRES_USER: agent_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-rag.sql:/docker-entrypoint-initdb.d/init-rag.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agent_user -d agents_rag"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

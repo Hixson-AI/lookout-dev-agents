@@ -24,5 +24,12 @@
   "reporting": {
     "format": "markdown",
     "output": "reports/"
+  },
+  "rag": {
+    "enabled": true,
+    "confidenceThreshold": 0.6,
+    "similarityThreshold": 0.75,
+    "storeFindings": true,
+    "useLearnedPatterns": true
   }
 }
