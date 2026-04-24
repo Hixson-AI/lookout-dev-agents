@@ -3,12 +3,18 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+function getOpenAIClient() {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error('OPENAI_API_KEY is required for RAG features');
+  }
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+}
 
-export async function generateEmbedding(text: string): Promise<number[]> {
+export async function generateEmbedding(text) {
   try {
+    const openai = getOpenAIClient();
     const response = await openai.embeddings.create({
       model: process.env.OPENAI_EMBEDDING_MODEL || 'text-embedding-3-small',
       input: text,
@@ -21,12 +27,6 @@ export async function generateEmbedding(text: string): Promise<number[]> {
   }
 }
 
-export function generateFindingContext(finding: {
-  type: string;
-  severity: string;
-  file: string;
-  message: string;
-  code_context?: string;
-}): string {
+export function generateFindingContext(finding) {
   return `${finding.type}: ${finding.message} in ${finding.file}${finding.code_context ? `\nContext: ${finding.code_context}` : ''}`;
 }
