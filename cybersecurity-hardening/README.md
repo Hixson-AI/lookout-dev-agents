@@ -17,7 +17,7 @@ This agent performs comprehensive security analysis on Lookout platform reposito
 ## Quick Start
 
 ```bash
-# Start Postgres with pgvector for RAG
+# Start Postgres with pgvector for RAG (separate docker container)
 docker-compose up -d
 
 # Install dependencies
