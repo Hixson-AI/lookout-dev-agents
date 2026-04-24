@@ -1,0 +1,20 @@
+{
+  "name": "cybersecurity-hardening-agent",
+  "version": "1.0.0",
+  "description": "Automated security scanning and hardening for Lookout platform",
+  "type": "module",
+  "scripts": {
+    "scan": "node src/index.js",
+    "report": "node src/reporter.js"
+  },
+  "keywords": [
+    "security",
+    "hardening",
+    "devsecops"
+  ],
+  "author": "Hixson AI",
+  "license": "MIT",
+  "dependencies": {
+    "glob": "^10.3.10"
+  }
+}

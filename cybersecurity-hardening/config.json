@@ -1,0 +1,28 @@
+{
+  "repositories": [
+    "../lookout-api",
+    "../lookout-control",
+    "../lookout-portal",
+    "../lookout-workers",
+    "../lookout-orchestrator",
+    "../lookout-n8n-runner"
+  ],
+  "severityThreshold": "medium",
+  "excludePatterns": [
+    "node_modules/**",
+    "dist/**",
+    "build/**",
+    ".git/**",
+    "coverage/**"
+  ],
+  "checks": {
+    "dependencies": true,
+    "secrets": true,
+    "codePatterns": true,
+    "infrastructure": true
+  },
+  "reporting": {
+    "format": "markdown",
+    "output": "reports/"
+  }
+}
