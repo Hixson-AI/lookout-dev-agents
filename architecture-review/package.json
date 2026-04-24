@@ -1,0 +1,28 @@
+{
+  "name": "architecture-review-agent",
+  "version": "1.0.0",
+  "description": "Self-learning architecture compliance agent for the Lookout platform. Reviews as-built code against architecture docs and principles.",
+  "type": "module",
+  "scripts": {
+    "scan": "node src/index.js",
+    "init-rag": "node src/init-rag.js",
+    "feedback": "node src/feedback.js",
+    "stats": "node src/stats.js",
+    "ingest-architecture": "node src/ingest-architecture.js"
+  },
+  "keywords": [
+    "architecture",
+    "compliance",
+    "review",
+    "rag",
+    "self-learning",
+    "lookout-platform"
+  ],
+  "author": "Hixson AI",
+  "license": "MIT",
+  "dependencies": {
+    "glob": "^10.3.10",
+    "pg": "^8.11.3",
+    "dotenv": "^16.4.5"
+  }
+}

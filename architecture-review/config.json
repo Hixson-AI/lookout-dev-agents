@@ -1,0 +1,51 @@
+{
+  "repositories": [
+    "../lookout-api",
+    "../lookout-control",
+    "../lookout-portal",
+    "../lookout-workers",
+    "../lookout-orchestrator",
+    "../lookout-n8n-runner",
+    "../lookout-local"
+  ],
+  "severityThreshold": "medium",
+  "excludePatterns": [
+    "node_modules/**",
+    "dist/**",
+    "build/**",
+    ".git/**",
+    "coverage/**",
+    "prisma/migrations/**",
+    "test/**",
+    "__tests__/**",
+    "e2e/**"
+  ],
+  "checks": {
+    "simplicityFirst": true,
+    "controlPlaneBoundary": true,
+    "dedicatedByNeed": true,
+    "phiCaution": true,
+    "orchestrationNotSoR": true,
+    "scaleThroughTemplates": true,
+    "repoStructure": true,
+    "documentationCompliance": true
+  },
+  "reporting": {
+    "format": "markdown",
+    "output": "reports/"
+  },
+  "rag": {
+    "enabled": true,
+    "confidenceThreshold": 0.6,
+    "similarityThreshold": 0.75,
+    "storeFindings": true,
+    "useLearnedPatterns": true
+  },
+  "architectureRepo": "../architecture",
+  "llm": {
+    "enabled": false,
+    "model": "anthropic/claude-3.5-sonnet",
+    "maxTokens": 1000,
+    "analyzeFindings": true
+  }
+}

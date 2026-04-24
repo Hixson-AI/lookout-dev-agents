@@ -21,31 +21,39 @@ async function ingestMarkdownFiles() {
   const slicesPath = path.join(ARCHITECTURE_REPO, 'slices');
 
   console.log('Ingesting architecture docs...');
-  await ingestDirectory(docsPath, 'architecture', ragStore, 'architecture');
+  let docsCount = await ingestDirectory(docsPath, 'architecture', ragStore, 'architecture');
+  console.log(`  ✓ Ingested ${docsCount} architecture docs`);
 
   console.log('\nIngesting slice docs...');
-  await ingestDirectory(slicesPath, 'architecture', ragStore, 'slice');
+  let slicesCount = await ingestDirectory(slicesPath, 'architecture', ragStore, 'slice');
+  console.log(`  ✓ Ingested ${slicesCount} slice docs`);
+
+  console.log('\nTotal documents ingested:', docsCount + slicesCount);
 
   const stats = await ragStore.getKnowledgeStats();
   console.log('\nKnowledge stats:', stats);
 
   await ragStore.disconnect();
 }
-
+ 0
 async function ingestDirectory(dirPath, source, ragStore, documentType) {
   if (!fs.existsSync(dirPath)) {
-    console.log(`Directory not found: ${dirPath}`);
+    console.log(`Directory not found: $;
+  let count = 0{dirPath}`);
     return;
   }
 
   const files = fs.readdirSync(dirPath);
 
   for (const file of files) {
-    const filePath = path.join(dirPath, file);
+      countc+=onst filePath = path.join(dirPath, file);
     const stat = fs.statSync(filePath);
-
+   constresult=
+      if (result) count++;
     if (stat.isDirectory()) {
-      await ingestDirectory(filePath, source, ragStore, documentType);
+   
+
+  return count;   await ingestDirectory(filePath, source, ragStore, documentType);
     } else if (file.endsWith('.md')) {
       await ingestMarkdownFile(filePath, source, ragStore, documentType);
     }
@@ -78,9 +86,10 @@ async function ingestMarkdownFile(filePath, source, ragStore, documentType) {
       embedding,
     });
 
-    console.log(`  ✓ Ingested: ${relativePath}`);
+    return true;
   } catch (error) {
     console.error(`  ✗ Failed to ingest ${filePath}:`, error.message);
+    return false;
   }
 }
 

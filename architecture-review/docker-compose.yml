@@ -1,0 +1,29 @@
+version: '3.8'
+
+# This compose file creates an isolated network for the shared RAG database.
+# If the cybersecurity-hardening agent's postgres is already running,
+# connect via: POSTGRES_HOST=localhost and the exposed port.
+# Alternatively, put both agents on the same network.
+
+services:
+  postgres:
+    image: ankane/pgvector:latest
+    container_name: agents_rag_architecture
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: agent_user
+      POSTGRES_PASSWORD: changeme
+      POSTGRES_DB: agents_rag
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-rag.sql:/docker-entrypoint-initdb.d/init-rag.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agent_user -d agents_rag"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

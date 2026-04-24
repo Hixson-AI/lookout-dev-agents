@@ -17,8 +17,13 @@ export class RAGStore {
   }
 
   async connect() {
-    await this.pool.connect();
-    console.log('Connected to RAG store');
+    const client = await this.pool.connect();
+    try {
+      await client.query('SELECT 1');
+      console.log('Connected to RAG store');
+    } finally {
+      client.release();
+    }
   }
 
   async disconnect() {

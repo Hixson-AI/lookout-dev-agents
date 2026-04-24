@@ -200,12 +200,18 @@ async function applyLearning(issues, repository, ragStore, config) {
   }
 
   const enhancedIssues = [];
+  let ragDisabled = false;
 
   for (const issue of issues) {
     try {
+      if (ragDisabled) {
+        enhancedIssues.push({ ...issue, confidence_score: 0.5 });
+        continue;
+      }
+
       const context = generateFindingContext(issue);
       const embedding = await generateEmbedding(context);
-      
+
       // Find similar historical findings
       const similar = await ragStore.findSimilarFindings(
         embedding,
@@ -218,7 +224,7 @@ async function applyLearning(issues, repository, ragStore, config) {
       if (similar.length > 0) {
         const avgSimilarity = similar.reduce((sum, s) => sum + s.similarity, 0) / similar.length;
         const falsePositiveRate = similar.filter(s => s.is_false_positive).length / similar.length;
-        
+
         // Boost confidence if similar findings were true positives
         confidence = 0.5 + (avgSimilarity * 0.3) - (falsePositiveRate * 0.2);
         confidence = Math.max(0.1, Math.min(0.95, confidence));
@@ -233,7 +239,13 @@ async function applyLearning(issues, repository, ragStore, config) {
         });
       }
     } catch (error) {
-      console.error(`Failed to apply learning for ${issue.file}:`, error.message);
+      if (error.message?.includes('401') || error.message?.includes('auth previously failed')) {
+        console.warn('OpenRouter auth failed — disabling RAG learning for this scan');
+        config.rag.enabled = false;
+        ragDisabled = true;
+      } else {
+        console.error(`Failed to apply learning for ${issue.file}:`, error.message);
+      }
       // Include issue anyway if learning fails
       enhancedIssues.push({ ...issue, confidence_score: 0.5 });
     }
@@ -251,7 +263,7 @@ async function storeFindingsInRAG(issues, repository, ragStore, config) {
     try {
       const context = generateFindingContext(issue);
       const embedding = await generateEmbedding(context);
-      
+
       await ragStore.storeFinding({
         ...issue,
         repository,
@@ -259,6 +271,11 @@ async function storeFindingsInRAG(issues, repository, ragStore, config) {
         confidence_score: issue.confidence_score || 0.5
       });
     } catch (error) {
+      if (error.message?.includes('401') || error.message?.includes('auth previously failed')) {
+        console.warn('OpenRouter auth failed — skipping RAG storage for remaining findings');
+        config.rag.enabled = false;
+        return;
+      }
       console.error(`Failed to store finding in RAG:`, error.message);
     }
   }
@@ -356,6 +373,65 @@ async function generateReport(allIssues, config, ragStore) {
   fs.writeFileSync(reportPath, report);
   console.log(`\nReport saved to ${reportPath}`);
   console.log(`Total issues found: ${totalIssues}`);
+
+  // Also post to reports API
+  await postReportToApi(allIssues, totalIssues, config);
+}
+
+async function postReportToApi(allIssues, totalIssues, config) {
+  const apiUrl = process.env.REPORTS_API_URL;
+  if (!apiUrl) return;
+
+  try {
+    const MAX_CONTEXT = 2000;
+    const findings = allIssues.flatMap(({ repo, issues }) =>
+      issues.map(issue => ({
+        severity: issue.severity,
+        file_path: issue.file,
+        line_number: issue.line_number || null,
+        message: issue.message,
+        finding_type: issue.type || null,
+        code_context: issue.code_context ? issue.code_context.slice(0, MAX_CONTEXT) : null,
+        repository: repo,
+        metadata: {
+          confidence_score: issue.confidence_score || null,
+          similar_findings: issue.similar_findings || null
+        }
+      }))
+    );
+
+    const high = findings.filter(f => f.severity === 'high').length;
+    const medium = findings.filter(f => f.severity === 'medium').length;
+    const low = findings.filter(f => f.severity === 'low').length;
+
+    const response = await fetch(`${apiUrl}/api/reports`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        agent_name: 'cybersecurity-hardening',
+        report_type: 'security-scan',
+        title: `Security Scan — ${new Date().toISOString().split('T')[0]}`,
+        summary: {
+          total_issues: totalIssues,
+          high,
+          medium,
+          low,
+          severity_threshold: config.severityThreshold,
+          repositories_scanned: config.repositories.length
+        },
+        findings
+      })
+    });
+
+    if (!response.ok) {
+      console.warn(`Failed to post report to API: ${response.status} ${response.statusText}`);
+    } else {
+      const data = await response.json();
+      console.log(`Report stored in API (id=${data.id})`);
+    }
+  } catch (error) {
+    console.warn('Failed to post report to API:', error.message);
+  }
 }
 
 async function main() {
