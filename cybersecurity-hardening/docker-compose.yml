@@ -45,7 +45,7 @@ services:
       dockerfile: Dockerfile
     container_name: lookout-reports-ui
     environment:
-      VITE_API_BASE: http://reports-api:3456
+      VITE_API_BASE: http://localhost:3456
     ports:
       - "5173:5173"
     depends_on:

@@ -1,0 +1,29 @@
+{
+  "name": "lookout-dev-agents",
+  "version": "1.0.0",
+  "description": "Collection of self-learning development agents for the Lookout platform",
+  "type": "module",
+  "scripts": {
+    "dashboard": "node src/agent-dashboard.js",
+    "run-all": "node src/agent-dashboard.js run-all",
+    "stats-all": "node src/agent-dashboard.js stats",
+    "init-all": "node src/agent-dashboard.js init-all",
+    "aggregate-reports": "node src/aggregate-reports.js",
+    "api": "node src/api-server.js"
+  },
+  "bin": {
+    "dev-agents": "./src/agent-dashboard.js"
+  },
+  "keywords": [
+    "agents",
+    "security",
+    "architecture",
+    "rag",
+    "self-learning"
+  ],
+  "author": "Hixson AI",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.22.1"
+  }
+}

@@ -29,6 +29,11 @@ Self-learning security scanning and hardening recommendations. Detects vulnerabi
 
 See `cybersecurity-hardening/README.md` for detailed usage.
 
+### Architecture Review Agent
+Self-learning architecture compliance agent that reviews as-built code against the Lookout platform architecture docs and principles. Detects architectural drift, principle violations, and compliance gaps.
+
+See `architecture-review/README.md` for detailed usage.
+
 ## Infrastructure
 
 All agents share a common RAG infrastructure:
@@ -58,6 +63,43 @@ npm run init-rag
 # Run the agent
 npm run scan
 ```
+
+## Dev Agents Dashboard
+
+The root package provides a unified dashboard and API for managing all agents:
+
+```bash
+# Install root dependencies
+npm install
+
+# Run CLI dashboard
+npm run dashboard
+
+# Run all agents
+npm run run-all
+
+# Show stats for all agents
+npm run stats-all
+
+# Generate unified report
+npm run aggregate-reports
+
+# Start REST API server (for integration with lookout-portal)
+npm run api
+```
+
+### API Endpoints
+
+When running `npm run api`, the following endpoints are available:
+
+- `GET /agents` - List all agents with status
+- `GET /agents/:id` - Get specific agent details
+- `POST /agents/:id/run` - Run a specific agent
+- `POST /agents/run-all` - Run all agents
+- `GET /agents/:id/stats` - Get agent learning stats
+- `GET /reports/unified` - Get unified report
+- `POST /reports/unified` - Generate unified report
+- `GET /health` - Health check
 
 ## Adding New Agents
 
