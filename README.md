@@ -41,6 +41,16 @@ All agents share a common RAG infrastructure:
 - **OpenAI embeddings** - Text embeddings for semantic search
 - **Self-learning** - Agents learn from findings and user feedback
 
+### Reports Stack
+
+A shared reporting layer persists agent scan results and surfaces them in a React UI:
+
+- **`apps/reports-api`** — Express API for report CRUD and agent listing (`:3456`)
+- **`apps/reports-ui`** — Vite + React UI for browsing reports (`:5173`)
+- **`scripts/init-reports.sql`** — Shared `agent_reports` and `report_findings` schema
+
+Agents POST findings to the API at scan completion. The UI supports per-agent filtering, severity stats, search, and **IDE protocol links** (`vscode://`, `windsurf://`, `cursor://`, `jetbrains://`) for every file path.
+
 ## Quick Start
 
 ```bash
@@ -48,11 +58,12 @@ All agents share a common RAG infrastructure:
 git clone https://github.com/Hixson-AI/lookout-dev-agents.git
 cd lookout-dev-agents
 
-# Navigate to an agent
+# Start all infrastructure (Postgres + Reports API + Reports UI)
 cd cybersecurity-hardening
-
-# Start RAG infrastructure
 docker-compose up -d
+
+# Navigate to an agent
+cd ../cybersecurity-hardening
 
 # Install dependencies
 npm install
@@ -60,13 +71,15 @@ npm install
 # Initialize knowledge base
 npm run init-rag
 
-# Run the agent
+# Run the agent (auto-persists report to API)
 npm run scan
 ```
 
+Open the reports UI at http://localhost:5173 to view the scan results.
+
 ## Dev Agents Dashboard
 
-The root package provides a unified dashboard and API for managing all agents:
+The root package provides a CLI dashboard for managing all agents. For a visual interface, use the **Reports UI** (`apps/reports-ui`) included in the Docker Compose stack.
 
 ```bash
 # Install root dependencies
@@ -83,23 +96,38 @@ npm run stats-all
 
 # Generate unified report
 npm run aggregate-reports
-
-# Start REST API server (for integration with lookout-portal)
-npm run api
 ```
 
-### API Endpoints
+### Reports API Endpoints
 
-When running `npm run api`, the following endpoints are available:
+The reports API (`apps/reports-api`) provides the backend for the React UI:
 
-- `GET /agents` - List all agents with status
-- `GET /agents/:id` - Get specific agent details
-- `POST /agents/:id/run` - Run a specific agent
-- `POST /agents/run-all` - Run all agents
-- `GET /agents/:id/stats` - Get agent learning stats
-- `GET /reports/unified` - Get unified report
-- `POST /reports/unified` - Generate unified report
-- `GET /health` - Health check
+- `GET /healthz` - Health check
+- `GET /api/agents` - List distinct agents that have submitted reports
+- `GET /api/reports?agent=&limit=&offset=` - List reports with severity counts
+- `GET /api/reports/:id` - Get single report with all findings
+- `POST /api/reports` - Submit a report (agent scan results)
+
+Report body:
+```json
+{
+  "agent_name": "cybersecurity-hardening",
+  "report_type": "security-scan",
+  "title": "Security Scan — 2026-04-24",
+  "summary": { "total_issues": 14, "high": 10, "medium": 4, "low": 0 },
+  "findings": [
+    {
+      "severity": "high",
+      "file_path": "/src/auth.ts",
+      "line_number": 42,
+      "message": "Hardcoded API key detected",
+      "finding_type": "secret",
+      "code_context": "const API_KEY = 'sk-...'",
+      "repository": "lookout-api"
+    }
+  ]
+}
+```
 
 ## Adding New Agents
 
@@ -111,3 +139,4 @@ To add a new agent following the Agent Skills pattern:
 4. Add `docker-compose.yml` if RAG capabilities are needed
 5. Add `README.md` with usage instructions
 6. Follow the self-learning pattern using the shared RAG infrastructure
+7. **Wire scan results to the reports API** — POST to `http://localhost:3456/api/reports` with `agent_name` and findings so results appear in the shared UI
