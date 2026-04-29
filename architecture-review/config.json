@@ -17,7 +17,9 @@
     "prisma/migrations/**",
     "test/**",
     "__tests__/**",
-    "e2e/**"
+    "e2e/**",
+    "playwright-report/**",
+    "test-results/**"
   ],
   "checks": {
     "simplicityFirst": true,

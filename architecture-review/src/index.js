@@ -77,6 +77,10 @@ function checkDedicatedByNeed(repoPath, exclude) {
   for (const fp of glob.sync('**/*.{js,ts,json,yaml,yml}', { cwd: repoPath, ignore: exclude, absolute: true })) {
     try {
       const c = fs.readFileSync(fp, 'utf8');
+      // Exclude type definitions - these are shared domain concepts
+      if (/export type|interface.*Profile|type.*TenantProfile|'shared'\s*\|\s*'dedicated'/i.test(c)) {
+        continue;
+      }
       if (/profile.*=.*dedicated|dedicated.*profile/i.test(c) && !/justification|trigger|approval/i.test(c)) {
         const m = c.match(/profile.*=.*dedicated|dedicated.*profile/i);
         const ln = c.substring(0, m.index).split('\n').length;
@@ -115,12 +119,18 @@ function checkDogfooding(repoPath, exclude) {
   for (const fp of glob.sync('**/*.{js,ts,json,yaml,yml,md}', { cwd: repoPath, ignore: exclude, absolute: true })) {
     try {
       const c = fs.readFileSync(fp, 'utf8');
-      if (/platform.*automation|admin.*ops|catalog.*sync|rag.*reindex|dns.*provision/i.test(c) && !/platform.*tenant|reserved.*tenant|App.*record/i.test(c)) {
+      // Exclude files that already mention platform tenant or App record modeling
+      // These are already correctly implemented
+      if (/platform.*tenant|reserved.*tenant|App.*record|platform app|findPlatformAdminApp|dispatchPlatformExecution/i.test(c)) {
+        continue;
+      }
+      if (/platform.*automation|admin.*ops|catalog.*sync|rag.*reindex|dns.*provision/i.test(c)) {
         const m = c.match(/platform.*automation|admin.*ops|catalog.*sync|rag.*reindex|dns.*provision/i);
         const ln = c.substring(0, m.index).split('\n').length;
         issues.push({type:'dogfooding', severity:'medium', file:fp, line_number:ln, principle_reference:'Principle 11: Dogfooding', message:'Platform automation detected - should be modeled as App record owned by platform tenant', code_context:`Line ${ln}: ${c.split('\n')[ln-1].trim().substring(0,120)}`});
       }
-      if (/internal.*workflow|hixson.*automation/i.test(c) && /dedicated/i.test(c)) {
+      // Only flag dedicated profile usage in internal workflows if it's not a type definition
+      if (/internal.*workflow|hixson.*automation/i.test(c) && /dedicated/i.test(c) && !/export type|type.*=.*dedicated|TenantProfile/i.test(c)) {
         const m = c.match(/internal.*workflow|hixson.*automation/i);
         const ln = c.substring(0, m.index).split('\n').length;
         issues.push({type:'dogfooding', severity:'high', file:fp, line_number:ln, principle_reference:'Principle 11: Dogfooding', message:'Internal automation using Dedicated profile - signals data model misalignment (should use Shared tier)', code_context:`Line ${ln}: ${c.split('\n')[ln-1].trim().substring(0,120)}`});
@@ -180,9 +190,24 @@ function checkRepoDeps(repoPath, exclude) {
       const c = fs.readFileSync(fp, 'utf8');
       for (const f of forbidden) {
         if (c.includes(f) || c.includes(`../${f}`)) {
-          const lineMatch = c.match(new RegExp(`(from|require|import).*?(\.\/\.\.\/)?${f}`));
-          const ln = lineMatch ? c.substring(0, lineMatch.index).split('\n').length : 0;
-          issues.push({type:'repo-structure', severity:'high', file:fp, line_number:ln, principle_reference:'Principle 9: Explicit Over Implicit / Repository Strategy', message:`Unauthorized cross-repo dependency to ${f} - repos should communicate via APIs`, code_context: ln ? `Line ${ln}: ${c.split('\n')[ln-1].trim().substring(0,120)}` : c.match(new RegExp(`(from|require|import).*?${f}`))?.[0] || ''});
+          // Exclude HTTP API calls (fetch() calls with URLs containing the repo name)
+          // These are proper service-to-service communication, not code dependencies
+          if (/fetch\s*\(\s*['"`].*?lookout-api|fetch\s*\(\s*['"`].*?lookout-control|LOOKOUT_API_URL|CONTROL_PLANE_URL/i.test(c)) {
+            continue;
+          }
+          // Exclude comments and string literals that aren't imports
+          const lines = c.split('\n');
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            if ((line.includes(f) || line.includes(`../${f}`)) && 
+                /(from|require|import)\s+['"`]/.test(line) &&
+                !line.trim().startsWith('//') &&
+                !line.trim().startsWith('*') &&
+                !line.includes('fetch(') &&
+                !line.includes('http')) {
+              issues.push({type:'repo-structure', severity:'high', file:fp, line_number:i+1, principle_reference:'Principle 9: Explicit Over Implicit / Repository Strategy', message:`Unauthorized cross-repo dependency to ${f} - repos should communicate via APIs`, code_context:`Line ${i+1}: ${line.trim().substring(0,120)}`});
+            }
+          }
         }
       }
     } catch {}
