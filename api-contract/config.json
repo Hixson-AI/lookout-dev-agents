@@ -1,11 +1,11 @@
 {
   "repositories": [
-    "../lookout-api",
-    "../lookout-control"
+    "../../lookout-api",
+    "../../lookout-control"
   ],
   "openapiPaths": {
-    "../lookout-api": "openapi.yaml",
-    "../lookout-control": "openapi.yaml"
+    "../../lookout-api": "openapi.yaml",
+    "../../lookout-control": "openapi.yaml"
   },
   "severityThreshold": "low",
   "excludePatterns": [

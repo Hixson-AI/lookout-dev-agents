@@ -1,9 +1,9 @@
 {
   "repositories": [
-    "../lookout-api",
-    "../lookout-control",
-    "../lookout-workers",
-    "../lookout-orchestrator"
+    "../../lookout-api",
+    "../../lookout-control",
+    "../../lookout-workers",
+    "../../lookout-orchestrator"
   ],
   "severityThreshold": "low",
   "excludePatterns": [

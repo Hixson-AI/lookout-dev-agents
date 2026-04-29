@@ -1,6 +1,7 @@
 {
   "repositories": [
-    "../lookout-n8n"
+    "../../lookout-n8n-runner",
+    "../../lookout-control"
   ],
   "severityThreshold": "low",
   "excludePatterns": [
