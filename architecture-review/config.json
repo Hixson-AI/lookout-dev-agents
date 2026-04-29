@@ -33,7 +33,10 @@
   },
   "reporting": {
     "format": "markdown",
-    "output": "reports/"
+    "output": "reports/",
+    "includeCodeContext": true,
+    "postToApi": true,
+    "apiUrl": "http://localhost:3456"
   },
   "rag": {
     "enabled": true,

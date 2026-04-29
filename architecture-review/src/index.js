@@ -283,6 +283,53 @@ async function generateReport(allIssues, config, ragStore) {
   fs.writeFileSync(reportPath, r);
   console.log(`\nReport saved to ${reportPath}`);
   console.log(`Total issues: ${total}`);
+
+  // Post to API if configured
+  if (config.reporting.postToApi) {
+    const apiUrl = config.reporting.apiUrl || 'http://localhost:3456';
+    const allFindings = [];
+    for (const { repo, issues } of allIssues) {
+      for (const issue of issues) {
+        allFindings.push({
+          severity: issue.severity,
+          file_path: issue.file,
+          line_number: issue.line_number,
+          message: issue.message,
+          finding_type: issue.type,
+          code_context: issue.code_context,
+          repository: repo,
+        });
+      }
+    }
+
+    try {
+      const response = await fetch(`${apiUrl}/api/reports`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          agent_name: 'architecture-review',
+          report_type: 'scan',
+          title: `Architecture Review — ${new Date().toISOString().split('T')[0]}`,
+          summary: {
+            total_findings: total,
+            high_severity: allFindings.filter(f => f.severity === 'high').length,
+            medium_severity: allFindings.filter(f => f.severity === 'medium').length,
+            low_severity: allFindings.filter(f => f.severity === 'low').length,
+          },
+          findings: allFindings,
+        }),
+      });
+
+      if (!response.ok) {
+        console.warn(`Failed to post report to API: ${response.status} ${response.statusText}`);
+      } else {
+        const data = await response.json();
+        console.log(`Report stored in API (id=${data.id})`);
+      }
+    } catch (error) {
+      console.warn('Failed to post report to API:', error.message);
+    }
+  }
 }
 
 async function main() {
