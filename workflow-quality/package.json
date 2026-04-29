@@ -1,0 +1,17 @@
+{
+  "name": "workflow-quality-agent",
+  "version": "1.0.0",
+  "description": "Scans n8n workflows for quality, PHI handling, error handling, and Action Library compliance",
+  "type": "module",
+  "scripts": {
+    "scan": "node src/index.js",
+    "init-rag": "node src/init-rag.js",
+    "feedback": "node src/feedback.js",
+    "stats": "node src/stats.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "glob": "^10.3.10",
+    "pg": "^8.11.3"
+  }
+}

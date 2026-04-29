@@ -1,0 +1,17 @@
+{
+  "name": "resource-usage-agent",
+  "version": "1.0.0",
+  "description": "Scans for resource leaks, connection pool issues, memory leaks, and improper cleanup",
+  "type": "module",
+  "scripts": {
+    "scan": "node src/index.js",
+    "init-rag": "node src/init-rag.js",
+    "feedback": "node src/feedback.js",
+    "stats": "node src/stats.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "glob": "^10.3.10",
+    "pg": "^8.11.3"
+  }
+}

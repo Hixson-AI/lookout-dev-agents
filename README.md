@@ -68,6 +68,35 @@ Self-learning architecture compliance agent that reviews as-built code against t
 
 See `architecture-review/README.md` for detailed usage.
 
+### Workflow Quality Agent
+Scans n8n workflows for quality, PHI handling, error handling, and Action Library compliance. Validates workflow definitions against platform best practices and ensures proper PHI scrubbing, error handling, and Action Library registration.
+
+**Checks:**
+- PHI handling in Shared tier workflows
+- Error handling and retry logic
+- Action Library compliance
+- Quality best practices (secrets, validation, timeouts)
+
+**Scans against:**
+- lookout-n8n (when available locally)
+
+See `workflow-quality/README.md` for detailed usage.
+
+### API Contract Agent
+Validates API implementations against OpenAPI specifications, ensuring schema compliance, authentication, and version compatibility.
+
+**Checks:**
+- Schema validation (request/response compliance)
+- Security (auth middleware, API keys, JWT)
+- Version compatibility (breaking changes, deprecation)
+- Route completeness (implementation vs documentation)
+
+**Scans against:**
+- lookout-api
+- lookout-control
+
+See `api-contract/README.md` for detailed usage.
+
 ## Infrastructure
 
 All agents share a common RAG infrastructure:

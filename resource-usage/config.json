@@ -1,0 +1,40 @@
+{
+  "repositories": [
+    "../lookout-api",
+    "../lookout-control",
+    "../lookout-workers",
+    "../lookout-orchestrator"
+  ],
+  "severityThreshold": "low",
+  "excludePatterns": [
+    "node_modules/**",
+    ".git/**",
+    "*.log",
+    "test/**",
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ],
+  "checks": {
+    "memoryLeaks": true,
+    "connectionLeaks": true,
+    "cleanupIssues": true,
+    "performance": true
+  },
+  "reporting": {
+    "format": "markdown",
+    "includeCodeContext": true,
+    "postToApi": true,
+    "apiUrl": "http://localhost:3456"
+  },
+  "rag": {
+    "enabled": false,
+    "confidenceThreshold": 0.7,
+    "similarityThreshold": 0.75,
+    "useLearnedPatterns": true
+  },
+  "llm": {
+    "enabled": false,
+    "model": "gpt-4",
+    "maxTokens": 1000
+  }
+}
