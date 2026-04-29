@@ -72,13 +72,18 @@ Edit `.env` to configure:
 
 The agent checks against these principles from `docs/04-architecture-principles.md`:
 
-- **Principle 1: Simplicity First**: Over-engineering patterns, unnecessary abstractions
-- **Principle 3: Shared Control Plane Boundary**: Control plane processing client data
-- **Principle 5: PHI Caution**: Missing PHI scrubbing, hardcoded PHI, unencrypted PHI
-- **Principle 7: Orchestration Is Not the System of Record**: n8n storing persistent state
-- **Principle 10: Scale Through Templates**: Bespoke solutions where templates should apply
-- **Documentation Compliance**: Missing ADR references, architecture doc drift
-- **Repository Structure**: Unauthorized cross-repo dependencies
+- **Principle 1: Simplicity First**: Over-engineering patterns, unnecessary abstractions, cold-start optimizations without clear UX impact
+- **Principle 2: Capability First**: Vendor names embedded in descriptions, missing capability definitions before tool choices
+- **Principle 3: Shared Control Plane Boundary**: Control plane processing client data, missing tenant isolation
+- **Principle 4: Dedicated by Need**: PHI in shared environments, isolation by default without justification
+- **Principle 5: PHI Caution**: Missing PHI scrubbing, hardcoded PHI, PHI/non-PHI mixing, consumer-grade tools for PHI
+- **Principle 6: Internal-Only Toolchain**: Internal tooling in client runtime, experimental tools in production
+- **Principle 7: Orchestration Is Not the System of Record**: n8n storing persistent state, orchestration as source of truth
+- **Principle 8: Document Before Building**: Missing ADRs, undocumented PHI handling decisions
+- **Principle 9: Explicit Over Implicit**: Verbal-only decisions, undocumented approvals, manual provisioning
+- **Principle 10: Scale Through Templates**: Bespoke solutions, hardcoded tenant logic, missing automation
+- **Principle 11: Dogfooding**: Platform ops not using Shared tier, internal automation not as App records
+- **Repository Structure**: Unauthorized cross-repo dependencies, one-deployable-per-repo violations
 
 ## Agent Skills Structure
 

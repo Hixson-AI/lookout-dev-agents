@@ -72,12 +72,12 @@ function checkSecrets(repoPath, excludePatterns) {
       secretPatterns.forEach(({ pattern, name }) => {
         const matches = content.match(pattern);
         if (matches) {
-          const relativePath = path.relative(repoPath, filePath);
           const lineNum = content.substring(0, matches.index).split('\n').length;
           issues.push({
             type: 'secret',
             severity: 'high',
-            file: relativePath,
+            file: filePath,
+            line_number: lineNum,
             message: `Potential ${name} detected in source file`,
             code_context: `Line ${lineNum}: ${matches[0]}`
           });
@@ -104,7 +104,6 @@ function checkCodePatterns(repoPath, excludePatterns) {
   files.forEach(filePath => {
     try {
       const content = fs.readFileSync(filePath, 'utf8');
-      const relativePath = path.relative(repoPath, filePath);
 
       if (/\beval\s*\(/.test(content)) {
         const match = content.match(/\beval\s*\(/);
@@ -112,7 +111,8 @@ function checkCodePatterns(repoPath, excludePatterns) {
         issues.push({
           type: 'code',
           severity: 'high',
-          file: relativePath,
+          file: filePath,
+          line_number: lineNum,
           message: 'Use of eval() detected - security risk',
           code_context: `Line ${lineNum}: ${content.split('\n')[lineNum - 1].trim()}`
         });
@@ -124,7 +124,8 @@ function checkCodePatterns(repoPath, excludePatterns) {
         issues.push({
           type: 'code',
           severity: 'medium',
-          file: relativePath,
+          file: filePath,
+          line_number: lineNum,
           message: 'Direct innerHTML assignment - potential XSS vulnerability',
           code_context: `Line ${lineNum}: ${content.split('\n')[lineNum - 1].trim()}`
         });
@@ -136,7 +137,8 @@ function checkCodePatterns(repoPath, excludePatterns) {
         issues.push({
           type: 'code',
           severity: 'high',
-          file: relativePath,
+          file: filePath,
+          line_number: lineNum,
           message: 'Hardcoded credentials in URL detected',
           code_context: `Line ${lineNum}: ${content.split('\n')[lineNum - 1].trim()}`
         });
@@ -148,7 +150,8 @@ function checkCodePatterns(repoPath, excludePatterns) {
         issues.push({
           type: 'code',
           severity: 'low',
-          file: relativePath,
+          file: filePath,
+          line_number: lineNum,
           message: 'Console logging in production code - should be removed or use proper logger',
           code_context: `Line ${lineNum}: ${content.split('\n')[lineNum - 1].trim()}`
         });
@@ -172,7 +175,8 @@ function checkInfrastructure(repoPath) {
       issues.push({
         type: 'infrastructure',
         severity: 'medium',
-        file: 'Dockerfile',
+        file: dockerfilePath,
+        line_number: 1,
         message: 'Dockerfile does not specify USER directive - containers may run as root',
         code_context: 'Missing USER directive'
       });
@@ -184,7 +188,8 @@ function checkInfrastructure(repoPath) {
       issues.push({
         type: 'infrastructure',
         severity: 'medium',
-        file: 'Dockerfile',
+        file: dockerfilePath,
+        line_number: lineNum,
         message: 'Dockerfile uses :latest tag - use specific version tags for reproducibility',
         code_context: `Line ${lineNum}: ${dockerfile.split('\n')[lineNum - 1].trim()}`
       });

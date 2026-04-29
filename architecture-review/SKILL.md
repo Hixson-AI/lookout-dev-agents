@@ -58,37 +58,72 @@ Use this skill when:
 - Over-engineered abstractions or premature optimization
 - Unnecessary microservices or layers
 - Dependency bloat or unused imports
+- Cold-start optimizations without clear UX impact
+
+### Principle 2: Capability First
+- Vendor names embedded in capability descriptions
+- Missing capability descriptions before tool choices
+- Tool choices not captured in ADRs
 
 ### Principle 3: Shared Control Plane Boundary
 - Control plane code processing client data or PHI
 - Missing tenant isolation in control-plane routes
 - Control plane middleware not enforcing boundaries
+- Control plane infrastructure processing client PHI
 
 ### Principle 4: Dedicated by Need
 - PHI data in shared environments (code-level detection)
 - Missing environment checks for sensitive operations
 - Hardcoded environment assumptions
+- Isolation by default without documented justification
 
 ### Principle 5: PHI Caution
 - Missing PHI scrubbing in logs or observability
 - Hardcoded PHI in error messages or responses
 - Unencrypted PHI in code or tests
 - Missing BAA-aware AI routing comments or configuration
+- PHI/non-PHI mixing in same pipeline
+- Consumer-grade tools for PHI workloads
+
+### Principle 6: Internal-Only Toolchain
+- Internal tooling appearing in client runtime diagrams
+- Experimental tools in client architecture
+- Build tooling deployed to client environments
 
 ### Principle 7: Orchestration Is Not the System of Record
 - n8n workflows storing persistent state without external DB
 - Workflow execution logic treating transient state as durable
 - Missing recovery plans in orchestration code
+- Orchestration as the source of truth for business data
+
+### Principle 8: Document Before Building
+- Missing ADRs before implementation
+- PHI handling decisions not in writing
+- Major decisions without written rationale
+
+### Principle 9: Explicit Over Implicit
+- Verbal-only decisions without documentation
+- Undocumented tool choices or constraints
+- Missing recorded approvals for actions
+- Manual provisioning instead of codified automation
 
 ### Principle 10: Scale Through Templates
 - Bespoke solutions where templates should apply
 - Hardcoded tenant-specific logic instead of parameterized templates
 - Missing automation for repeatable patterns
+- Manual tenant provisioning instead of automated subdomain creation
+
+### Principle 11: Dogfooding
+- Platform operations not using the Shared tier execution pipeline
+- Internal automation not modeled as App records
+- Admin features not exercised by Hixson operators before client onboarding
+- Internal workflows requiring Dedicated profile (signals misalignment)
 
 ### Repository Structure Compliance
 - Missing architecture doc references in implementation PRs
 - Code structure deviating from defined repo roles
 - Unauthorized cross-repo dependencies
+- Repos not following one-deployable-per-repo principle
 
 ## Self-Learning Capabilities
 

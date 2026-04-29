@@ -6,6 +6,7 @@ Collection of self-learning development agents for the Lookout platform, followi
 
 This repository contains development-focused agents that assist with:
 - Code quality and security
+- Architecture compliance and drift detection
 - Documentation generation
 - Testing and validation
 - Infrastructure automation
@@ -27,10 +28,43 @@ Each agent follows the Agent Skills specification:
 ### Cybersecurity Hardening Agent
 Self-learning security scanning and hardening recommendations. Detects vulnerabilities, secrets, insecure patterns, and infrastructure issues. Learns from previous scans to improve accuracy over time.
 
+**Scans against:**
+- lookout-api
+- lookout-control
+- lookout-portal
+- lookout-workers
+- lookout-orchestrator
+- lookout-n8n-runner
+
+*(Note: lookout-n8n workflow exports repo can be added when available locally)*
+
 See `cybersecurity-hardening/README.md` for detailed usage.
 
 ### Architecture Review Agent
 Self-learning architecture compliance agent that reviews as-built code against the Lookout platform architecture docs and principles. Detects architectural drift, principle violations, and compliance gaps.
+
+**Checks against 11 architecture principles:**
+- Principle 1: Simplicity First
+- Principle 2: Capability First
+- Principle 3: Shared Control Plane Boundary
+- Principle 4: Dedicated by Need
+- Principle 5: PHI Caution
+- Principle 6: Internal-Only Toolchain
+- Principle 7: Orchestration Is Not the System of Record
+- Principle 8: Document Before Building
+- Principle 9: Explicit Over Implicit
+- Principle 10: Scale Through Templates
+- Principle 11: Dogfooding
+
+**Scans against:**
+- lookout-api
+- lookout-control
+- lookout-portal
+- lookout-workers
+- lookout-orchestrator
+- lookout-n8n-runner
+
+*(Note: lookout-n8n workflow exports repo can be added when available locally)*
 
 See `architecture-review/README.md` for detailed usage.
 

@@ -17,16 +17,15 @@ function checkSimplicity(repoPath, exclude) {
   for (const fp of glob.sync('**/*.{js,ts,json}', { cwd: repoPath, ignore: exclude, absolute: true })) {
     try {
       const c = fs.readFileSync(fp, 'utf8');
-      const rp = path.relative(repoPath, fp);
       const factories = [...c.matchAll(/class\s+\w*Factory\w*\s+/g)];
       if (factories.length) { 
         const ln = c.substring(0, factories[0].index).split('\n').length;
-        issues.push({type:'simplicity-first', severity:'low', file:rp, principle_reference:'Principle 1: Simplicity First', message:'Factory pattern detected - verify it is necessary or can be simplified', code_context:`Line ${ln}: ${factories[0][0].trim()}`}); 
+        issues.push({type:'simplicity-first', severity:'low', file:fp, line_number:ln, principle_reference:'Principle 1: Simplicity First', message:'Factory pattern detected - verify it is necessary or can be simplified', code_context:`Line ${ln}: ${factories[0][0].trim()}`}); 
       }
       if (fp.endsWith('package.json')) {
         const pkg = JSON.parse(c);
         for (const dep of Object.keys(pkg.dependencies||{}).filter(d=>['lodash','underscore','moment','uuid'].includes(d))) {
-          issues.push({type:'simplicity-first', severity:'low', file:rp, principle_reference:'Principle 1: Simplicity First', message:`Dependency ${dep} may be unnecessary - verify active usage`, code_context:`"${dep}": "${pkg.dependencies[dep]}"`});
+          issues.push({type:'simplicity-first', severity:'low', file:fp, line_number:1, principle_reference:'Principle 1: Simplicity First', message:`Dependency ${dep} may be unnecessary - verify active usage`, code_context:`"${dep}": "${pkg.dependencies[dep]}"`});
         }
       }
     } catch {}
@@ -40,10 +39,9 @@ function checkControlPlane(repoPath, exclude) {
   for (const fp of glob.sync('**/src/**/*.{js,ts}', { cwd: repoPath, ignore: exclude, absolute: true })) {
     try {
       const c = fs.readFileSync(fp, 'utf8');
-      const rp = path.relative(repoPath, fp);
       for (const m of [...c.matchAll(/req\.body\.(ssn|phi|patient|medical|diagnosis|health)/gi)]) {
         const ln = c.substring(0, m.index).split('\n').length;
-        issues.push({type:'control-plane-boundary', severity:'high', file:rp, principle_reference:'Principle 3: Shared Control Plane Boundary', message:'Control plane code appears to process client PHI data', code_context:`Line ${ln}: ${c.split('\n')[ln-1].trim().substring(0,120)}`});
+        issues.push({type:'control-plane-boundary', severity:'high', file:fp, line_number:ln, principle_reference:'Principle 3: Shared Control Plane Boundary', message:'Control plane code appears to process client PHI data', code_context:`Line ${ln}: ${c.split('\n')[ln-1].trim().substring(0,120)}`});
       }
     } catch {}
   }
@@ -59,15 +57,73 @@ function checkPHI(repoPath, exclude) {
       const isTest = /test|spec|fixture/i.test(rp);
       for (const m of [...c.matchAll(/console\.(log|debug|info)\s*\(.*?(ssn|patient|phi|medical|diagnosis|mrn|dob)/gi)]) {
         const ln = c.substring(0, m.index).split('\n').length;
-        issues.push({type:'phi-caution', severity:'high', file:rp, principle_reference:'Principle 5: PHI Caution', message:'Potential PHI logging detected - use structured logger with PHI scrubbing', code_context:`Line ${ln}: ${c.split('\n')[ln-1].trim().substring(0,120)}`});
+        issues.push({type:'phi-caution', severity:'high', file:fp, line_number:ln, principle_reference:'Principle 5: PHI Caution', message:'Potential PHI logging detected - use structured logger with PHI scrubbing', code_context:`Line ${ln}: ${c.split('\n')[ln-1].trim().substring(0,120)}`});
       }
       for (const m of [...c.matchAll(/const\s+\w*(patient|ssn|mrn|dob)\w*\s*=\s*['"]\d{3}-?\d{2}-?\d{4}/gi)]) {
-        if (isTest) continue; 
+        if (isTest) continue;
         const ln = c.substring(0, m.index).split('\n').length;
-        issues.push({type:'phi-caution', severity:'high', file:rp, principle_reference:'Principle 5: PHI Caution', message:'Hardcoded PHI-like data pattern in non-test file', code_context:`Line ${ln}: ${c.split('\n')[ln-1].trim().substring(0,120)}`});
+        issues.push({type:'phi-caution', severity:'high', file:fp, line_number:ln, principle_reference:'Principle 5: PHI Caution', message:'Hardcoded PHI-like data pattern in non-test file', code_context:`Line ${ln}: ${c.split('\n')[ln-1].trim().substring(0,120)}`});
       }
       if ((rp.endsWith('docker-compose.yml')||rp.endsWith('fly.toml')) && /LOKI|GRAFANA|log|observability/i.test(c) && !/scrub|phi|sanitize|mask/i.test(c)) {
-        issues.push({type:'phi-caution', severity:'medium', file:rp, principle_reference:'Principle 5: PHI Caution', message:'Observability config without PHI scrubbing mention', code_context:'Observability configuration block'});
+        issues.push({type:'phi-caution', severity:'medium', file:fp, line_number:1, principle_reference:'Principle 5: PHI Caution', message:'Observability config without PHI scrubbing mention', code_context:'Observability configuration block'});
+      }
+    } catch {}
+  }
+  return issues;
+}
+
+function checkDedicatedByNeed(repoPath, exclude) {
+  const issues = [];
+  for (const fp of glob.sync('**/*.{js,ts,json,yaml,yml}', { cwd: repoPath, ignore: exclude, absolute: true })) {
+    try {
+      const c = fs.readFileSync(fp, 'utf8');
+      if (/profile.*=.*dedicated|dedicated.*profile/i.test(c) && !/justification|trigger|approval/i.test(c)) {
+        const m = c.match(/profile.*=.*dedicated|dedicated.*profile/i);
+        const ln = c.substring(0, m.index).split('\n').length;
+        issues.push({type:'dedicated-by-need', severity:'medium', file:fp, line_number:ln, principle_reference:'Principle 4: Dedicated by Need', message:'Dedicated profile without documented justification or trigger', code_context:`Line ${ln}: ${c.split('\n')[ln-1].trim().substring(0,120)}`});
+      }
+      if (/if.*dedicated|dedicated.*then/i.test(c) && !/Shared.*default|shared.*default/i.test(c)) {
+        const m = c.match(/if.*dedicated|dedicated.*then/i);
+        const ln = c.substring(0, m.index).split('\n').length;
+        issues.push({type:'dedicated-by-need', severity:'low', file:fp, line_number:ln, principle_reference:'Principle 4: Dedicated by Need', message:'Isolation by default - should default to Shared unless explicitly justified', code_context:`Line ${ln}: ${c.split('\n')[ln-1].trim().substring(0,120)}`});
+      }
+    } catch {}
+  }
+  return issues;
+}
+
+function checkInternalOnlyToolchain(repoPath, exclude) {
+  const issues = [];
+  const name = path.basename(repoPath);
+  if (name === 'lookout-portal' || name === 'elmo') return issues;
+  for (const fp of glob.sync('**/*.{js,ts,json,yaml,yml}', { cwd: repoPath, ignore: exclude, absolute: true })) {
+    try {
+      const c = fs.readFileSync(fp, 'utf8');
+      const rp = path.relative(repoPath, fp);
+      if (/vite|webpack|rollup|parcel|esbuild/i.test(c) && /client|tenant|production/i.test(c) && !/portal|internal|admin/i.test(rp)) {
+        const m = c.match(/vite|webpack|rollup|parcel|esbuild/i);
+        const ln = c.substring(0, m.index).split('\n').length;
+        issues.push({type:'internal-only-toolchain', severity:'low', file:fp, line_number:ln, principle_reference:'Principle 6: Internal-Only Toolchain', message:'Build tooling reference in client-facing code - verify this is not internal tooling deployed to client runtime', code_context:`Line ${ln}: ${c.split('\n')[ln-1].trim().substring(0,120)}`});
+      }
+    } catch {}
+  }
+  return issues;
+}
+
+function checkDogfooding(repoPath, exclude) {
+  const issues = [];
+  for (const fp of glob.sync('**/*.{js,ts,json,yaml,yml,md}', { cwd: repoPath, ignore: exclude, absolute: true })) {
+    try {
+      const c = fs.readFileSync(fp, 'utf8');
+      if (/platform.*automation|admin.*ops|catalog.*sync|rag.*reindex|dns.*provision/i.test(c) && !/platform.*tenant|reserved.*tenant|App.*record/i.test(c)) {
+        const m = c.match(/platform.*automation|admin.*ops|catalog.*sync|rag.*reindex|dns.*provision/i);
+        const ln = c.substring(0, m.index).split('\n').length;
+        issues.push({type:'dogfooding', severity:'medium', file:fp, line_number:ln, principle_reference:'Principle 11: Dogfooding', message:'Platform automation detected - should be modeled as App record owned by platform tenant', code_context:`Line ${ln}: ${c.split('\n')[ln-1].trim().substring(0,120)}`});
+      }
+      if (/internal.*workflow|hixson.*automation/i.test(c) && /dedicated/i.test(c)) {
+        const m = c.match(/internal.*workflow|hixson.*automation/i);
+        const ln = c.substring(0, m.index).split('\n').length;
+        issues.push({type:'dogfooding', severity:'high', file:fp, line_number:ln, principle_reference:'Principle 11: Dogfooding', message:'Internal automation using Dedicated profile - signals data model misalignment (should use Shared tier)', code_context:`Line ${ln}: ${c.split('\n')[ln-1].trim().substring(0,120)}`});
       }
     } catch {}
   }
@@ -81,11 +137,10 @@ function checkOrchestration(repoPath, exclude) {
   for (const fp of glob.sync('**/*.{js,ts,json}', { cwd: repoPath, ignore: exclude, absolute: true })) {
     try {
       const c = fs.readFileSync(fp, 'utf8');
-      const rp = path.relative(repoPath, fp);
       if (/sqlite|memoryStore|workflowState\s*=/.test(c)) {
         const m = c.match(/sqlite|memoryStore|workflowState\s*=/);
         const ln = c.substring(0, m.index).split('\n').length;
-        issues.push({type:'orchestration-not-sor', severity:'medium', file:rp, principle_reference:'Principle 7: Orchestration Is Not the System of Record', message:'Orchestration code appears to store persistent state locally', code_context:`Line ${ln}: ${c.split('\n')[ln-1].trim().substring(0,120)}`});
+        issues.push({type:'orchestration-not-sor', severity:'medium', file:fp, line_number:ln, principle_reference:'Principle 7: Orchestration Is Not the System of Record', message:'Orchestration code appears to store persistent state locally', code_context:`Line ${ln}: ${c.split('\n')[ln-1].trim().substring(0,120)}`});
       }
     } catch {}
   }
@@ -97,10 +152,10 @@ function checkTemplates(repoPath, exclude) {
   for (const fp of glob.sync('**/*.{js,ts,tsx}', { cwd: repoPath, ignore: exclude, absolute: true })) {
     try {
       const c = fs.readFileSync(fp, 'utf8');
-      const rp = path.relative(repoPath, fp);
       const matches = [...c.matchAll(/if\s*\(\s*tenant\s*===?\s*['"](\w+)/g)];
       if (matches.length > 2) {
-        issues.push({type:'scale-through-templates', severity:'medium', file:rp, principle_reference:'Principle 10: Scale Through Templates', message:`${matches.length} hardcoded tenant branches detected - prefer parameterized templates`, code_context:`Examples: ${matches.slice(0,3).map(m=>m[0]).join('; ')}`});
+        const ln = c.substring(0, matches[0].index).split('\n').length;
+        issues.push({type:'scale-through-templates', severity:'medium', file:fp, line_number:ln, principle_reference:'Principle 10: Scale Through Templates', message:`${matches.length} hardcoded tenant branches detected - prefer parameterized templates`, code_context:`Examples: ${matches.slice(0,3).map(m=>m[0]).join('; ')}`});
       }
     } catch {}
   }
@@ -123,12 +178,11 @@ function checkRepoDeps(repoPath, exclude) {
   for (const fp of glob.sync('**/*.{js,ts,json}', { cwd: repoPath, ignore: exclude, absolute: true })) {
     try {
       const c = fs.readFileSync(fp, 'utf8');
-      const rp = path.relative(repoPath, fp);
       for (const f of forbidden) {
         if (c.includes(f) || c.includes(`../${f}`)) {
-          const lineMatch = c.match(new RegExp(`(from|require|import).*?(\./\.\.\/)?${f}`));
+          const lineMatch = c.match(new RegExp(`(from|require|import).*?(\.\/\.\.\/)?${f}`));
           const ln = lineMatch ? c.substring(0, lineMatch.index).split('\n').length : 0;
-          issues.push({type:'repo-structure', severity:'high', file:rp, principle_reference:'Principle 9: Explicit Over Implicit / Repository Strategy', message:`Unauthorized cross-repo dependency to ${f} - repos should communicate via APIs`, code_context: ln ? `Line ${ln}: ${c.split('\n')[ln-1].trim().substring(0,120)}` : c.match(new RegExp(`(from|require|import).*?${f}`))?.[0] || ''});
+          issues.push({type:'repo-structure', severity:'high', file:fp, line_number:ln, principle_reference:'Principle 9: Explicit Over Implicit / Repository Strategy', message:`Unauthorized cross-repo dependency to ${f} - repos should communicate via APIs`, code_context: ln ? `Line ${ln}: ${c.split('\n')[ln-1].trim().substring(0,120)}` : c.match(new RegExp(`(from|require|import).*?${f}`))?.[0] || ''});
         }
       }
     } catch {}
@@ -249,11 +303,14 @@ async function main() {
     const issues = [];
     if (config.checks.simplicityFirst) issues.push(...checkSimplicity(repoPath, config.excludePatterns));
     if (config.checks.controlPlaneBoundary) issues.push(...checkControlPlane(repoPath, config.excludePatterns));
+    if (config.checks.dedicatedByNeed) issues.push(...checkDedicatedByNeed(repoPath, config.excludePatterns));
     if (config.checks.phiCaution) issues.push(...checkPHI(repoPath, config.excludePatterns));
+    if (config.checks.internalOnlyToolchain) issues.push(...checkInternalOnlyToolchain(repoPath, config.excludePatterns));
     if (config.checks.orchestrationNotSoR) issues.push(...checkOrchestration(repoPath, config.excludePatterns));
     if (config.checks.scaleThroughTemplates) issues.push(...checkTemplates(repoPath, config.excludePatterns));
     if (config.checks.documentationCompliance) issues.push(...checkDocs(repoPath, config.excludePatterns));
     if (config.checks.repoStructure) issues.push(...checkRepoDeps(repoPath, config.excludePatterns));
+    if (config.checks.dogfooding) issues.push(...checkDogfooding(repoPath, config.excludePatterns));
     const enhanced = await applyLearning(issues, repo, ragStore, config);
     allIssues.push({ repo, issues: enhanced });
     if (config.rag.enabled) await storeFindings(enhanced, repo, ragStore, config);

@@ -5,8 +5,7 @@
     "../lookout-portal",
     "../lookout-workers",
     "../lookout-orchestrator",
-    "../lookout-n8n-runner",
-    "../lookout-local"
+    "../lookout-n8n-runner"
   ],
   "severityThreshold": "medium",
   "excludePatterns": [
@@ -25,10 +24,12 @@
     "controlPlaneBoundary": true,
     "dedicatedByNeed": true,
     "phiCaution": true,
+    "internalOnlyToolchain": true,
     "orchestrationNotSoR": true,
     "scaleThroughTemplates": true,
     "repoStructure": true,
-    "documentationCompliance": true
+    "documentationCompliance": true,
+    "dogfooding": true
   },
   "reporting": {
     "format": "markdown",
