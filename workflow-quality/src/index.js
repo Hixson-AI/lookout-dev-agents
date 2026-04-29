@@ -383,7 +383,7 @@ async function postToApi(report, findings, config) {
   if (!config.reporting.postToApi) return;
 
   try {
-    const response = await fetch(config.reporting.apiUrl, {
+    const response = await fetch(`${config.reporting.apiUrl}/api/reports`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

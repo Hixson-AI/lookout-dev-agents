@@ -65,7 +65,7 @@ export class RAGStore {
     `;
     const values = [`[${embedding.join(',')}]`, threshold, limit];
 
-    const result = await this.pool.query(query);
+    const result = await this.pool.query(query, values);
     return result.rows;
   }
 
@@ -108,7 +108,7 @@ export class RAGStore {
       scan.learning_enabled,
     ];
 
-    await this.pool.query(query);
+    await this.pool.query(query, values);
   }
 
   async getLearningStats() {
