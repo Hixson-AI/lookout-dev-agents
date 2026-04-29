@@ -97,6 +97,23 @@ Validates API implementations against OpenAPI specifications, ensuring schema co
 
 See `api-contract/README.md` for detailed usage.
 
+### Resource Usage Agent
+Scans for resource leaks, connection pool issues, memory leaks, and improper cleanup patterns.
+
+**Checks:**
+- Memory leaks (event listeners, timers, closures, globals)
+- Connection leaks (database, HTTP, WebSockets, file handles)
+- Cleanup issues (missing finally blocks, error paths)
+- Performance patterns (inefficient loops, blocking operations)
+
+**Scans against:**
+- lookout-api
+- lookout-control
+- lookout-workers
+- lookout-orchestrator
+
+See `resource-usage/README.md` for detailed usage.
+
 ## Infrastructure
 
 All agents share a common RAG infrastructure:
