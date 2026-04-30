@@ -1,0 +1,27 @@
+{
+  "name": "logging-verification-agent",
+  "version": "1.0.0",
+  "description": "Self-learning logging verification for Lookout platform with RAG capabilities",
+  "type": "module",
+  "scripts": {
+    "scan": "node src/index.js",
+    "init-rag": "node src/init-rag.js",
+    "feedback": "node src/feedback.js",
+    "stats": "node src/stats.js"
+  },
+  "keywords": [
+    "logging",
+    "observability",
+    "tenant-isolation",
+    "telemetry",
+    "rag",
+    "self-learning"
+  ],
+  "author": "Hixson AI",
+  "license": "MIT",
+  "dependencies": {
+    "glob": "^10.3.10",
+    "pg": "^8.11.3",
+    "dotenv": "^16.4.5"
+  }
+}

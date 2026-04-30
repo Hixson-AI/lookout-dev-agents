@@ -1,0 +1,35 @@
+{
+  "repositories": [
+    "../lookout-api",
+    "../lookout-control",
+    "../lookout-workers",
+    "../lookout-orchestrator",
+    "../lookout-n8n-runner"
+  ],
+  "severityThreshold": "medium",
+  "excludePatterns": [
+    "node_modules/**",
+    "dist/**",
+    "build/**",
+    ".git/**",
+    "coverage/**"
+  ],
+  "checks": {
+    "tenantIdUsage": true,
+    "telemetryPackage": true,
+    "logContext": true,
+    "metricLabels": true
+  },
+  "reporting": {
+    "format": "markdown",
+    "output": "reports/",
+    "apiUrl": "http://localhost:3456/api/reports"
+  },
+  "rag": {
+    "enabled": true,
+    "confidenceThreshold": 0.6,
+    "similarityThreshold": 0.75,
+    "storeFindings": true,
+    "useLearnedPatterns": true
+  }
+}
