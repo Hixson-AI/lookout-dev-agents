@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "scan": "node src/index.js",
+    "test": "node test-fixtures/run-self-test.js",
     "init-rag": "node src/init-rag.js",
     "feedback": "node src/feedback.js",
     "stats": "node src/stats.js"

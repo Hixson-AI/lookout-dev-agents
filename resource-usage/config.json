@@ -6,13 +6,25 @@
     "../../lookout-orchestrator"
   ],
   "severityThreshold": "low",
+  "minConfidence": 0.6,
   "excludePatterns": [
-    "node_modules/**",
-    ".git/**",
-    "*.log",
-    "test/**",
+    "**/node_modules/**",
+    "**/.git/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/coverage/**",
+    "**/*.d.ts",
+    "**/*.log",
+    "**/test/**",
+    "**/tests/**",
+    "**/__tests__/**",
     "**/*.test.ts",
-    "**/*.spec.ts"
+    "**/*.test.js",
+    "**/*.spec.ts",
+    "**/*.spec.js",
+    "**/scripts/**",
+    "**/migrations/**",
+    "**/fixtures/**"
   ],
   "checks": {
     "memoryLeaks": true,
@@ -23,7 +35,7 @@
   "reporting": {
     "format": "markdown",
     "includeCodeContext": true,
-    "postToApi": true,
+    "postToApi": false,
     "apiUrl": "http://localhost:3456"
   },
   "rag": {
